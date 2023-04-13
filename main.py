@@ -14,38 +14,64 @@ cursor = connection.cursor()
 #Select Data Method
 #testQuery = ('SELECT * FROM info')
 
+#Delete Row method
+#testQuery = (DELTE FROM info WHERE accnumber = ')
+
 #Update Money Method
-testQuery = ('UPDATE info SET money = 2000 WHERE accnumber = 123456') 
+#testQuery = ('UPDATE info SET money = 2000 WHERE accnumber = 123456') 
 
-cursor.execute(testQuery)
+#cursor.execute(testQuery)
 
-testQuery = ('SELECT * FROM info')
-
-cursor.execute(testQuery)
-
-
-for item in cursor:
-
-    print(item)
-
-connection.commit()
+#connection.commit()
 
 
 root = tk.Tk()
 
-
 number = tk.StringVar()
 pin = tk.StringVar()
+amount = tk.StringVar()
+
+def create_account():
+    return
+
+def check_balance():
+    return
+
+def deposit_money():
+    clear_widgets()
+
+    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
+    cursor.execute(testQuery)
+
+    testQuery = ('UPDATE info SET money = ' + str(int(amount.get()) + cursor.fetchone()[0]) + ' WHERE accnumber = ' + number.get()) 
+    cursor.execute(testQuery)
+
+    connection.commit()
+
+    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
+    cursor.execute(testQuery)
+
+    w = Label(root, text="You deposited " + amount.get() + '. You now have ' + str(cursor.fetchone()[0]) +' in your account.', font=('Times'))
+    w.grid(row = 0, column = 0)
+
+    exit = Button(root, text="Go back to main menu", command = logInScreen, font=('Times', 14))
+    exit.grid(row = 1, column = 0, sticky = '', pady = 2)
+
+def withdraw_money():
+    return
 
 
 def clear_widgets():
     for widget in root.winfo_children():
         widget.destroy()
 
+#Main Screen
 def welcomeScreen():
     clear_widgets()
+
+    #Grid of labels and input
     w = Label (root, text="Welcome to Beaver Bank\n", font=('Times', 20))
-    w.grid(row = 0, column = 1)
+    w.grid(row = 0, column = 0, columnspan=3)
 
     numberText = Label (root, text="Account Number:", font=("Times", 20))
     numberText.grid(row = 1, column = 0, sticky = W, pady = 2)
@@ -59,7 +85,8 @@ def welcomeScreen():
     pininputtxt = Entry(root, textvariable = pin, width=20, font=('Times 20'))
     pininputtxt.grid(row = 2, column = 1, columnspan = 2, sticky = W+E, pady = 2)
 
-    createACC = Button(root, text="Create Account", command = root.destroy, width=15, font=('Times', 14))
+    #Buttons
+    createACC = Button(root, text="Create Account", command = create_account, width=15, font=('Times', 14))
     createACC.grid(row = 3, column = 0, sticky = '', pady = 2)
 
     logIn = Button(root, text="Log In", command = logInScreen, width=10, font=('Times', 14))
@@ -76,16 +103,56 @@ def logInScreen():
     cursor.execute(testQuery)
     accpin = cursor.fetchone()
     if(accpin != None and accpin[0] == pin.get()):
-
         #Log In Screen
-        print("works")
         clear_widgets()
-        w = Label (root, text="Welcome NAME!\n", font=('Times', 20))
-        w.grid(row = 0, column = 1)
+        amount = tk.StringVar()
+
+        #Log In Message
+        cursor.execute('SELECT name FROM info WHERE accnumber = '+number.get())
+        w = Label (root, text="Welcome " + cursor.fetchone()[0] +"!\n", font=('Times', 20))
+        w.grid(row = 0, column = 0, columnspan=2)
+
+        #Buttons
+        balance = Button(root, text='Check Balance', command=check_balance, width=15, font=('Times 14'))
+        balance.grid(row = 1, column = 0, sticky ='', pady = 2)
+
+        deposit = Button(root, text='Deposit Money', command=depositScreen, width=15, font=('Times 14'))
+        deposit.grid(row = 1, column = 1, sticky ='', pady = 2)
+
+        withdraw = Button(root, text='Withdraw', command=withdrawScreen, width=15, font=('Times 14'))
+        withdraw.grid(row = 2, column = 0, sticky ='', pady = 2)
+
+        editACC = Button(root, text='Edit Account', command=editScreen, width=15, font=('Times 14'))
+        editACC.grid(row = 2, column = 1, sticky ='', pady = 2)
+
+        exit = Button(root, text="Exit", command = welcomeScreen, width=10, font=('Times', 14))
+        exit.grid(row = 3, column = 1, sticky = W, pady = 2)
+
     else:
-        w = Label (root, text="    Print a Valid Value     \n", font=('Times', 20))
+        w = Label (root, text="    Insert a Valid Value     \n", font=('Times', 20))
         w.grid(row = 0, column = 1)
 
+def depositScreen():
+    clear_widgets()
+
+
+    w = Label(root, text="How much money would you like to deposit?\n", font=('Times'))
+    w.grid(row = 0, column = 0, columnspan=2)
+
+    amountinputtxt = Entry(root, textvariable = amount, width=20, font=('Times 20'), justify=CENTER)
+    amountinputtxt.grid(row = 1, column = 0, columnspan = 2, sticky = W+E, pady = 2)
+
+    deposit = Button(root, text='Deposit', command=deposit_money, width=15, font=('Times 14'))
+    deposit.grid(row = 2, column = 0, sticky ='', pady = 2)
+
+    exit = Button(root, text="Cancel", command = logInScreen, width=10, font=('Times', 14))
+    exit.grid(row = 2, column = 1, sticky = W, pady = 2)
+
+def withdrawScreen():
+    return
+
+def editScreen():
+    return
 
 welcomeScreen()
 
