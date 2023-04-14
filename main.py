@@ -46,7 +46,7 @@ def validate(date_text):
 
 def create_account():
     #Test if valic entries
-    if not (validate(birth.get()) and newpin.get().isnumeric()):
+    if not (validate(birth.get()) and newpin.get().isnumeric() and len(name.get()) > 0):
         w = Label(root, text="Please enter valid values.\n", font=('Times 20'))
         w.grid(row = 0, column = 0, columnspan=2)
         return
@@ -134,6 +134,54 @@ def withdraw_money():
     exit = Button(root, text="Go back to main menu", command = logInScreen, font=('Times', 14))
     exit.grid(row = 1, column = 0, sticky = '', pady = 2)
 
+def change_name():
+    if(len(name.get()) > 0):
+        testQuery = ('UPDATE info SET name = \"' + name.get() + '\" WHERE accnumber = ' + number.get())
+        cursor.execute(testQuery)
+
+        connection.commit()
+    else:
+        w = Label (root, text="Please Enter a Valid Name\n", font=('Times', 20))
+        w.grid(row = 0, column = 1)
+
+def change_birth():
+    if(validate(birth.get())):
+        testQuery = ('UPDATE info SET birth = \"' + birth.get() +'\" WHERE accnumber = ' + number.get())
+        cursor.execute(testQuery)
+
+        connection.commit()
+    else:
+        w = Label (root, text=" Please Enter a Valid Birth \n", font=('Times', 20))
+        w.grid(row = 0, column = 1)
+
+def change_pin():
+    if(len(newpin.get()) == 4):
+        testQuery = ('UPDATE info SET pin = \"' + newpin.get() +'\" WHERE accnumber = ' + number.get())
+        cursor.execute(testQuery)
+
+        connection.commit()
+        global pin
+        pin = newpin
+    else:
+        w = Label (root, text="  Please Enter a Valid PIN  \n", font=('Times', 20))
+        w.grid(row = 0, column = 1)
+
+def delete_account():
+    cursor.execute('SELECT name FROM info WHERE accnumber = '+number.get())
+    name = cursor.fetchone()[0]
+    
+    testQuery = ('DELETE FROM info WHERE accnumber = ' + number.get())
+    cursor.execute(testQuery)
+
+    connection.commit()
+
+    clear_widgets()
+    w = Label(root, text='Deleted Account for ' + name + '.', font=('Times 20'))
+    w.grid(row = 0, column = 0)
+
+    exit = Button(root, text="Exit", command = welcomeScreen, width=10, font=('Times', 14))
+    exit.grid(row = 1, column = 0, pady = 2)
+
 
 def clear_widgets():
     for widget in root.winfo_children():
@@ -174,6 +222,12 @@ def welcomeScreen():
 
 def createAccountScreen():
     clear_widgets()
+    global name
+    global birth
+    global newpin
+    name = tk.StringVar()
+    birth = tk.StringVar()
+    newpin = tk.StringVar()
 
 
     w = Label(root, text="Create a new account\n", font=('Times 20'))
@@ -213,6 +267,7 @@ def logInScreen():
     if(accpin != None and accpin[0] == pin.get()):
         #Log In Screen
         clear_widgets()
+        global amount
         amount = tk.StringVar()
 
         #Log In Message
@@ -238,7 +293,7 @@ def logInScreen():
 
     else:
         w = Label (root, text="    Insert a Valid Value     \n", font=('Times', 20))
-        w.grid(row = 0, column = 1)
+        w.grid(row = 0, column = 0, columnspan=3)
 
 def depositScreen():
     clear_widgets()
@@ -273,7 +328,51 @@ def withdrawScreen():
     exit.grid(row = 2, column = 1, sticky = W, pady = 2)
 
 def editScreen():
-    return
+
+    clear_widgets()
+    global name
+    global birth
+    global newpin
+    name = tk.StringVar()
+    birth = tk.StringVar()
+    newpin = tk.StringVar()
+
+
+    w = Label (root, text="Edit Account\n", font=('Times', 20))
+    w.grid(row = 0, column = 1)
+
+    nametxt = Label (root, text="Name:", font=('Times', 20))
+    nametxt.grid(row = 1, column = 0, sticky = E)
+
+    nameinputtxt = Entry(root, textvariable = name, width=20, font=('Times 20'))
+    nameinputtxt.grid(row = 1, column = 1, pady = 2)
+
+    changeName = Button(root, text='Change Name', command=change_name, width=15, font=('Times 14'))
+    changeName.grid(row = 1, column = 2, sticky ='', pady = 2)
+
+    birthtxt = Label (root, text="Birth\n (YYYY-MM-DD):", font=('Times', 20))
+    birthtxt.grid(row = 2, column = 0, sticky = E)
+
+    birthinputtxt = Entry(root, textvariable = birth, width=20, font=('Times 20'))
+    birthinputtxt.grid(row = 2, column = 1, pady = 2)
+
+    changeBirth = Button(root, text='Change Birth', command=change_birth, width=15, font=('Times 14'))
+    changeBirth.grid(row = 2, column = 2, sticky ='', pady = 2)
+
+    pintxt = Label (root, text="PIN (4 Digits):", font=('Times', 20))
+    pintxt.grid(row = 3, column = 0, sticky = E)
+
+    pininputtxt = Entry(root, textvariable = newpin, width=20, font=('Times 20'))
+    pininputtxt.grid(row = 3, column = 1, pady = 2)
+
+    changePIN = Button(root, text='Change PIN', command=change_pin, width=15, font=('Times 14'))
+    changePIN.grid(row = 3, column = 2, sticky ='', pady = 2)
+
+    delete = Button(root, text="Delete Account", command = delete_account, font=('Times', 14))
+    delete.grid(row = 4, column = 0, sticky = '', pady = 2)
+
+    exit = Button(root, text="Exit", command = logInScreen, width=10, font=('Times', 14))
+    exit.grid(row = 4, column = 1, sticky = '', pady = 2)
 
 welcomeScreen()
 
