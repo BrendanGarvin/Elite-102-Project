@@ -11,22 +11,6 @@ connection = mysql.connector.connect(user = 'root', database = 'bank', password 
 
 cursor = connection.cursor(buffered=True)
 
-#Insert Row Method
-#testQuery = ('INSERT INTO info VALUES (NULL, \"John Doe\" , 123456, 0000, \"1950-01-01\", 0)') 
-
-#Select Data Method
-#testQuery = ('SELECT * FROM info')
-
-#Delete Row method
-#testQuery = (DELTE FROM info WHERE accnumber = ')
-
-#Update Money Method
-#testQuery = ('UPDATE info SET money = 2000 WHERE accnumber = 123456') 
-
-#cursor.execute(testQuery)
-
-#connection.commit()
-
 
 root = tk.Tk()
 
@@ -41,16 +25,27 @@ def validate(date_text):
         try:
             datetime.date.fromisoformat(date_text)
         except ValueError:
+            print('date')
             return False
         return True
 
-def create_account():
-    #Test if valic entries
+def create_account_button():
+    #Test if valid entries
     if not (validate(birth.get()) and newpin.get().isnumeric() and len(name.get()) > 0):
         w = Label(root, text="Please enter valid values.\n", font=('Times 20'))
         w.grid(row = 0, column = 0, columnspan=2)
         return
     
+    accnumber = create_account(name, newpin, birth)
+
+    clear_widgets()
+    w = Label(root, text="New user created.\n Welcome " + name.get() + '! \n Your account number is ' + accnumber + '.', font=('Times 20'))
+    w.grid(row = 0, column = 0)
+
+    exit = Button(root, text="Exit", command = welcomeScreen, width=10, font=('Times', 14))
+    exit.grid(row = 1, column = 0, pady = 2)
+
+def create_account(name, newpin, birth):
     #Get new unique accnumber
     accnumber = ''
     intable = True
@@ -66,36 +61,22 @@ def create_account():
     cursor.execute(testQuery)
 
     connection.commit()
-
-    clear_widgets()
-    w = Label(root, text="New user created.\n Welcome " + name.get() + '! \n Your account number is ' + accnumber + '.', font=('Times 20'))
-    w.grid(row = 0, column = 0)
-
-    exit = Button(root, text="Exit", command = welcomeScreen, width=10, font=('Times', 14))
-    exit.grid(row = 1, column = 0, pady = 2)
+    return accnumber
 
 def check_balance():
     cursor.execute('SELECT money FROM info WHERE accnumber = '+number.get()) 
-    w = Label (root, text="Your balance is: $" + str(cursor.fetchone()[0]) + '\n', font=('Times', 20))
+    money = cursor.fetchone()[0]
+    w = Label (root, text="Your balance is: $" + str(money) + '\n', font=('Times', 20))
     w.grid(row = 0, column = 0, columnspan=2)
+    return str(money)
 
-def deposit_money():
+def deposit_money_button():
     if not(amount.get().isnumeric()):
         w = Label(root, text="Please enter a number.\n", font=('Times'), width=30)
         w.grid(row = 0, column = 0, columnspan=2)
         return
 
-    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
-    cursor.execute(testQuery)
-
-    testQuery = ('UPDATE info SET money = ' + str(int(amount.get()) + cursor.fetchone()[0]) + ' WHERE accnumber = ' + number.get()) 
-    cursor.execute(testQuery)
-
-    connection.commit()
-
-    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
-    cursor.execute(testQuery)
-
+    deposit_money(amount, number)
     clear_widgets()
 
     w = Label(root, text="You deposited $" + amount.get() + '. You now have $' + str(cursor.fetchone()[0]) +' in your account.', font=('Times'))
@@ -104,7 +85,19 @@ def deposit_money():
     exit = Button(root, text="Go back to main menu", command = logInScreen, font=('Times', 14))
     exit.grid(row = 1, column = 0, sticky = '', pady = 2)
 
-def withdraw_money():
+def deposit_money(money, number):
+    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
+    cursor.execute(testQuery)
+
+    testQuery = ('UPDATE info SET money = ' + str(int(money.get()) + cursor.fetchone()[0]) + ' WHERE accnumber = ' + number.get()) 
+    cursor.execute(testQuery)
+
+    connection.commit()
+
+    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
+    return cursor.execute(testQuery)
+
+def withdraw_money_button():
     if not(amount.get().isnumeric()):
         w = Label(root, text="Please enter a number.\n", font=('Times'), width=30)
         w.grid(row = 0, column = 0, columnspan=2)
@@ -119,13 +112,7 @@ def withdraw_money():
         w.grid(row = 0, column = 0, columnspan=2)
         return
     
-    testQuery = ('UPDATE info SET money = ' + str(currentMoney - int(amount.get())) + ' WHERE accnumber = ' + number.get()) 
-    cursor.execute(testQuery)
-
-    connection.commit()
-
-    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
-    cursor.execute(testQuery)
+    withdraw_money(currentMoney, amount, number)
 
     clear_widgets()
     w = Label(root, text="You withdrew $" + amount.get() + '. You now have $' + str(cursor.fetchone()[0]) +' in your account.', font=('Times'))
@@ -134,15 +121,28 @@ def withdraw_money():
     exit = Button(root, text="Go back to main menu", command = logInScreen, font=('Times', 14))
     exit.grid(row = 1, column = 0, sticky = '', pady = 2)
 
-def change_name():
-    if(len(name.get()) > 0):
-        testQuery = ('UPDATE info SET name = \"' + name.get() + '\" WHERE accnumber = ' + number.get())
-        cursor.execute(testQuery)
+def withdraw_money(currentMoney, amount, number):
+    testQuery = ('UPDATE info SET money = ' + str(currentMoney - int(amount.get())) + ' WHERE accnumber = ' + number.get()) 
+    cursor.execute(testQuery)
 
-        connection.commit()
+    connection.commit()
+
+    testQuery = ('SELECT money FROM info WHERE accnumber = ' + number.get())
+    return cursor.execute(testQuery)
+
+def change_name_button():
+    if(len(name.get()) > 0):
+        change_name(name, number)
     else:
         w = Label (root, text="Please Enter a Valid Name\n", font=('Times', 20))
         w.grid(row = 0, column = 1)
+
+def change_name(name, number):
+    testQuery = ('UPDATE info SET name = \"' + name.get() + '\" WHERE accnumber = ' + number.get())
+    cursor.execute(testQuery)
+
+    connection.commit()
+    return cursor.execute('SELECT name FROM info WHERE name = \'' + name.get() + "\'")
 
 def change_birth():
     if(validate(birth.get())):
@@ -251,7 +251,7 @@ def createAccountScreen():
     pininputtxt = Entry(root, textvariable = newpin, width=20, font=('Times 20'))
     pininputtxt.grid(row = 3, column = 1, sticky = E, pady = 2)
 
-    deposit = Button(root, text='Create', command=create_account, width=15, font=('Times 14'))
+    deposit = Button(root, text='Create', command=create_account_button, width=15, font=('Times 14'))
     deposit.grid(row = 4, column = 0, sticky ='', pady = 2)
 
     exit = Button(root, text="Exit", command = welcomeScreen, width=10, font=('Times', 14))
@@ -305,7 +305,7 @@ def depositScreen():
     amountinputtxt = Entry(root, textvariable = amount, width=20, font=('Times 20'), justify=CENTER)
     amountinputtxt.grid(row = 1, column = 0, columnspan = 2, sticky = W+E, pady = 2)
 
-    deposit = Button(root, text='Deposit', command=deposit_money, width=15, font=('Times 14'))
+    deposit = Button(root, text='Deposit', command=deposit_money_button, width=15, font=('Times 14'))
     deposit.grid(row = 2, column = 0, sticky ='', pady = 2)
 
     exit = Button(root, text="Cancel", command = logInScreen, width=10, font=('Times', 14))
@@ -321,7 +321,7 @@ def withdrawScreen():
     amountinputtxt = Entry(root, textvariable = amount, width=20, font=('Times 20'), justify=CENTER)
     amountinputtxt.grid(row = 1, column = 0, columnspan = 2, sticky = W+E, pady = 2)
 
-    deposit = Button(root, text='Withdraw', command=withdraw_money, width=15, font=('Times 14'))
+    deposit = Button(root, text='Withdraw', command=withdraw_money_button, width=15, font=('Times 14'))
     deposit.grid(row = 2, column = 0, sticky ='', pady = 2)
 
     exit = Button(root, text="Cancel", command = logInScreen, width=10, font=('Times', 14))
@@ -347,7 +347,7 @@ def editScreen():
     nameinputtxt = Entry(root, textvariable = name, width=20, font=('Times 20'))
     nameinputtxt.grid(row = 1, column = 1, pady = 2)
 
-    changeName = Button(root, text='Change Name', command=change_name, width=15, font=('Times 14'))
+    changeName = Button(root, text='Change Name', command=change_name_button, width=15, font=('Times 14'))
     changeName.grid(row = 1, column = 2, sticky ='', pady = 2)
 
     birthtxt = Label (root, text="Birth\n (YYYY-MM-DD):", font=('Times', 20))
